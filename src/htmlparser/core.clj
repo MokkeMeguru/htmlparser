@@ -35,7 +35,8 @@
         parse-csv)))
 
 (defn gen-file-lists [start end]
-  (for [x (range start (inc end))]
+  (
+   for [x (range start (inc end))]
     (if-not (= x 14)
      (for [y  (range 1 13)]
        {:root (format "rev20%02d" x) :child (format "rev20%02d%02d" x y)}

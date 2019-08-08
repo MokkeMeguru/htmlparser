@@ -1,4 +1,5 @@
 # niconico 大百科データ前処理ツール
+これは niconico 大百科のデータのうち、 **HTMLのデータを前処理する** ツールです。
 
 ## Usage
 
@@ -53,17 +54,16 @@ lein run preprocess-data --source "/<your dictionary>/nico-dict/zips/"
 ```
 
 
-# htmlparser
+## Preprocessed file?
+see. [example edn file](./example.edn)
 
-A Clojure library designed to ... well, that part is up to you.
+実行後は上のファイルの形式に変換されたHTMLのデータが、 nippy の形式で `resources/revXXXXXX.npy` の形に保存されます。大体6GBくらいのサイズになります。
 
-## Usage
-
-FIXME
+zip されたファイルは [現在GoogleDriveへアップロードしています](https://drive.google.com/file/d/1amt99PIlBjWlzrmh-Uvr55dS6aRqXgB2/view?usp=sharing)
 
 ## License
 
-Copyright © 2019 FIXME
+Copyright © 2019 MokkeMeguru
 
 This program and the accompanying materials are made available under the
 terms of the Eclipse Public License 2.0 which is available at
@@ -75,11 +75,3 @@ Public License, v. 2.0 are satisfied: GNU General Public License as published by
 the Free Software Foundation, either version 2 of the License, or (at your
 option) any later version, with the GNU Classpath Exception which is available
 at https://www.gnu.org/software/classpath/license.html.
-
-## MEMO
-```
- sed -i -e 's/\\"/""/g' xxx.csv 
-```
-
-usually csv's escape for the charactor '"' is '""', but some times it's '\"'.
-it will lead us a huge trouble...
