@@ -8,6 +8,7 @@
                  [hiccup "2.0.0-alpha2"]
                  [org.clojure/data.csv "0.1.4"]
                  [hiccup-bridge "1.0.1"]
-                 [com.taoensso/nippy "2.14.0"] 
-                 ]
-  :repl-options {:init-ns htmlparser.core})
+                 [com.taoensso/nippy "2.14.0"]
+                 [org.clojure/tools.cli "0.4.2"]]
+  :repl-options {:init-ns htmlparser.core}
+  :main htmlparser.core)

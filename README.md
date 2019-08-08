@@ -1,3 +1,58 @@
+# niconico 大百科データ前処理ツール
+
+## Usage
+
+1. 次のような形式でダウンロードしたデータを解凍してください。
+
+```text
+.
+└── nico-dict
+    └── zips
+        ├── download.txt
+        ├── head
+        │   ├── head2008.csv
+        │   ├── ...
+        │   └── head2014.csv
+        ├── head.zip
+        ├── res
+        │   ├── res2008.csv
+        │   ├── ...
+        │   └── res2014.csv
+        ├── res.zip
+        ├── rev2008.zip
+        ├── rev2009
+        │   ├── rev200901.csv
+        │   ├── rev200902.csv
+        │   ├── rev200903.csv
+        │   ├── ...
+        │   └── rev200912.csv
+        ├── rev2009.zip
+        ├──...
+        ├── rev2013.zip
+        ├── rev2014
+        │   ├── rev201401.csv
+        │   └── rev201402.csv
+        └── rev2014.zip
+```
+
+TODO: 実行のためのシェルファイル作成
+
+2. すべての csv ファイルについて次のコマンドを実行してください。
+```
+ sed -i -e 's/\\"/""/g' xxx.csv 
+```
+
+上はデータのCSVの形式を修正するためのシェルコマンドです。
+
+TODO: 実行のためのシェルファイル作成
+
+3. 次のコマンドを実行してください。
+
+```shell
+lein run preprocess-data --source "/<your dictionary>/nico-dict/zips/"
+```
+
+
 # htmlparser
 
 A Clojure library designed to ... well, that part is up to you.
