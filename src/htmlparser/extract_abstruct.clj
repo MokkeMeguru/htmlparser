@@ -165,14 +165,22 @@
                 (gen-content body))))))))
 
 ;; (split-by-content  example-body example-info)
-(def example-data (nth (open-nippy "./resources/rev201402-raw.npy") 789))
+;; (def example-data (nth (open-nippy "./resources/rev201402-raw.npy") 3000))
+;; ;; (count (open-nippy "./resources/rev201402-raw.npy"))
+;; (let [info
+;;       {:id (-> example-data first)
+;;        :date (-> example-data (nth 2))}]
+;;   (-> example-data  extract-p extract-body (split-by-content info) (clojure.pprint/pprint (clojure.java.io/writer "example-parsed.edn"))))
+;;  (clojure.pprint/pprint (-> example-data extract-body))
 
-(let [info
-      {:id (-> example-data first)
-       :date (-> example-data (nth 2))}]
-  (-> example-data  extract-p extract-body (split-by-content info) (clojure.pprint/pprint (clojure.java.io/writer "example-parsed.edn"))))
- (clojure.pprint/pprint (-> example-data extract-body))
 
+(defn gen-parsed-data [npy-path id output-path]
+  (let [data (nth (open-nippy npy-path) id)
+        info {:id (-> data first)
+              :date (-> data (nth 2))}]
+    (-> data  extract-p extract-body (split-by-content info) (clojure.pprint/pprint (clojure.java.io/writer output-path)))))
+
+;; (gen-parsed-data "./resources/rev201402-raw.npy" 3000 "example-parsed.edn")
 
 ;; (-> example-data extract-body)
 
