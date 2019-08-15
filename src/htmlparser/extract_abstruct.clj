@@ -5,84 +5,133 @@
             [taoensso.nippy :as nippy]
             [clojure.tools.cli :refer [parse-opts]]))
 
-
 (defn open-nippy [fname]
   (nippy/thaw-from-file fname))
-
-(def example-data (nth (open-nippy "./resources/rev201402-raw.npy") 250))
 
 (defn extract-body [html]
   (loop [x html]
     (let [tag (first x)
           content (rest x)]
-      ;; (print tag)
       (if-not (= tag :body)
         (recur (first content))
         content))))
 
-;;
-;; (-> example-data first) ;; id
-;; (-> example-data (nth 2))  ;; updated
-;; (->  example-data second extract-body first)
-;; (->  example-data extract-body (nth 3))
-;; (->  example-data extract-body (nth 4))
-
 (defn extract-p [element]
   (if (string? element)
     element
-      (let [tag (first element)]
+    (let [tag (first element)
+          remove-tag (fn [content]
+                       (let [removed-content (map extract-p content)]
+                         (if (remove string? removed-content)
+                           (apply str removed-content)
+                           removed-content                           )
+                         ))]
         (if (string? tag)
           element
           (condp = tag
-            :p (vec (remove nil? (cons tag (flatten (map extract-p (rest element))))))
-            :li (vec (remove nil? (cons tag (flatten (map extract-p (rest element))))))
-            :br nil
-            :span (map extract-p (rest element))
-            (if (string? (rest element))
-              (vec (cons tag (rest element)))
-              (vec (cons tag
-                         (map extract-p (rest element))))))))))
+            :p (let [content (clojure.string/replace
+                              (clojure.string/replace
+                               (apply str (remove nil? (flatten (map extract-p (rest element))))) #"。。" "。")
+                      #" " "")]
+                 (if (not= "" content)
+                   [tag content]
+                   nil))
+            :dt (let [content (clojure.string/replace
+                              (clojure.string/replace
+                               (apply str (remove nil? (flatten (map extract-p (rest element))))) #"。。" "。")
+                              #" " "")]
+                 (if (not= "" content)
+                   [tag content]
+                   nil))
+            :dd (let [content (clojure.string/replace
+                              (clojure.string/replace
+                               (apply str (remove nil? (flatten (map extract-p (rest element))))) #"。。" "。")
+                              #" " "")]
+                 (if (not= "" content)
+                   [tag content]
+                   nil))
+            ;; :li (vec (cons tag (remove nil? (flatten (map extract-p (rest element))))))
+            ;; :td (map extract-p (rest element)) ;; (vec (cons tag (remove nil? (flatten (map extract-p (rest element))))))
+            :br "。"
+            :a (second element) ;;(map extract-p (rest element))
+            :span (remove-tag (rest element)) ;; (map extract-p (rest element)) ;; (second element)
+            :strong (remove-tag (rest element)) ;;(map extract-p (rest element)) ;;(second element)
+            :sub (remove-tag (rest element)) ;;(second element)
+            :b (second element) ;;(map extract-p (rest element))
+            :nobr (second element) ;;(map extract-p (rest element))
+            (let [content (map extract-p (rest element))]
+              (vec (cons tag content))))))))
 
 ;; (-> example-data extract-body (nth 3) extract-p)
 ;; (-> example-data extract-body (nth 11) extract-p)
 
-;; (def example-info {:id 400000 :date 201400000})
-;; (def example-body [[:p "barbar"] [:h2 "title1"] [:h3 "subtitile1"] [:p [:span "hogehgoe"] [:br]] [:h2 "title2"] [:p "foo"] [:h3 "title3"] [:div]])
+(defn parse-tbody [tbody]
+  (mapv #(-> % rest vec) (rest tbody))
+  ;; (apply merge (map (fn [d] {(keyword (apply str (-> (rest d) first rest)))
+  ;;                            (-> (rest d) second rest)}) (rest tbody)))
+  )
 
+;; (-> example-table second rest)
+;; (clojure.pprint/pprint (parse-tbody (-> example-table second)))
 
+(defn parse-table [table]
+  (let [tag (first table)
+        body (rest table)
+        table-map
+        {:tbody :body
+         :thead :head
+         :tfoot :foot}
+        option :option]
+    [:table
+     (apply merge
+            (map
+             (fn [e]
+               (let [k (get table-map (first e) option)
+                     v (cond
+                         (= k :body) (parse-tbody (rest e))
+                         :default (vec (rest e)))]
+                 {k v}))
+             body))])  )
+
+(defn format-content-element [item]
+  (cond
+    ;; (= :table (first item)) item;; (parse-table item)
+    (= :ul (first item)) (vec (cons :list (parse-list item)))
+    (= :ol (first item)) (vec (cons :list (parse-list item)))
+    :default item))
+
+(defn parse-list [list]
+  (map (fn [li]  (map (fn [e]
+                        (if (vector? e)
+                          (format-content-element e)
+                          e)) (rest li))) (rest list)))
+
+;; (println (parse-table example-table))
+(defn format-content [content]
+  (mapv
+   format-content-element
+   content))
 
 (defn gen-content [body]
-  {:content body
-   :children []})
+  (let [
+        body (vec (remove nil? body))
+        content (format-content (vec (take-while #(not= :h3 (first %)) body)))
+        rest (drop-while #(not= :h3 (first %)) body)
+        gen-child (fn [rbody]
+                    (loop [tmp (vec rbody)
+                           acc []]
+                      (if-not (zero? (count tmp))
+                        (recur (vec (drop-while #(not= :h3 (first %)) (drop 1 (vec tmp))))
+                               (cons
+                                {:name (-> (take 1 tmp) first second)
+                                 :meta (-> (take 1 tmp) first first)
+                                 :content (format-content (vec (take-while #(not= :h3 (first %)) (drop 1 (vec tmp)))))}
+                                acc))
+                        (vec acc))))]
+    {:content content
+     :children (gen-child rest) 
+     }))
 
-
-;; (def example-parsed
-;;  (let [info example-info]
-;;    (loop [body (take-while #(not= (first %) :h2) example-body)
-;;           reminder (drop-while #(not= (first %) :h2) example-body)
-;;           tag [:meta-abstruct ""]
-;;           acc []]
-;;      (print body)
-;;       (if (= 0 (count body))
-;;         acc
-;;         (recur
-;;          (take-while #(not= (first %) :h2) (rest reminder)) ;; (rest (drop-while #(not= (first %) :h2) reminder))
-;;          (drop-while #(not= (first %) :h2) (rest reminder)) ;; (rest (drop-while #(not= (first %) :h2) reminder))
-;;          (first reminder)
-;;          (conj acc
-;;                (condp = (first tag)
-;;                  :meta-abstruct
-;;                  (merge
-;;                   {:name (:artifle-name info)
-;;                    :meta :meta-abstruct
-;;                    :info info}
-;;                   (gen-content body))
-;;                  :h2
-;;                  (merge
-;;                   {:name (second tag)
-;;                    :meta (first tag)}
-;;                   (gen-content body)))))))))
-;; (clojure.pprint/pprint example-parsed)
 
 ;; TODO: get article's name from csv
 (defn split-by-content
@@ -116,7 +165,14 @@
                 (gen-content body))))))))
 
 ;; (split-by-content  example-body example-info)
-(-> example-data extract-p extract-body  (split-by-content example-info) (clojure.pprint/pprint (clojure.java.io/writer "example-parsed.edn")))
+(def example-data (nth (open-nippy "./resources/rev201402-raw.npy") 789))
+
+(let [info
+      {:id (-> example-data first)
+       :date (-> example-data (nth 2))}]
+  (-> example-data  extract-p extract-body (split-by-content info) (clojure.pprint/pprint (clojure.java.io/writer "example-parsed.edn"))))
+ (clojure.pprint/pprint (-> example-data extract-body))
+
 
 ;; (-> example-data extract-body)
 

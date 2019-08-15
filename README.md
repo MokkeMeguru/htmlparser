@@ -61,6 +61,9 @@ see. [example edn file](./example.edn)
 
 zip されたファイルは [現在GoogleDriveへアップロードしています](https://drive.google.com/file/d/1amt99PIlBjWlzrmh-Uvr55dS6aRqXgB2/view?usp=sharing)
 
+## HTML の解析
+ref [advanced document](./doc/adv-doc.org)
+
 ## License
 
 Copyright © 2019 MokkeMeguru

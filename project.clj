@@ -9,6 +9,7 @@
                  [org.clojure/data.csv "0.1.4"]
                  [hiccup-bridge "1.0.1"]
                  [com.taoensso/nippy "2.14.0"]
-                 [org.clojure/tools.cli "0.4.2"]]
+                 [org.clojure/tools.cli "0.4.2"]
+                 [org.clojure/java.jdbc "0.7.9"]]
   :repl-options {:init-ns htmlparser.core}
   :main htmlparser.core)
