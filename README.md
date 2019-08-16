@@ -1,6 +1,10 @@
 # niconico 大百科データ前処理ツール
 これは niconico 大百科のデータのうち、 **HTMLのデータを前処理する** ツールです。
 
+## requirement
+- leiningen > 2.0.0
+- sqlite > 2.8.0
+
 ## Usage
 
 1. 次のような形式でダウンロードしたデータを解凍してください。
@@ -38,9 +42,10 @@
 
 TODO: 実行のためのシェルファイル作成
 
-2. すべての csv ファイルについて次のコマンドを実行してください。
+2. すべての csv ファイルが格納されているフォルダについて次のコマンドを実行してください。
 ```
- sed -i -e 's/\\"/""/g' xxx.csv 
+find . -type f -name "*.csv" -print0 | xargs -0 sed -i 's/\\"/""/g'
+find . -type f -name "*.csv" -print0 | xargs -0 sed -i 's/\\""/\\"/g'
 ```
 
 上はデータのCSVの形式を修正するためのシェルコマンドです。

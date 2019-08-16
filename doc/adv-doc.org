@@ -1,28 +1,24 @@
 * HTMLのデータを更に解析をする
   
+* 適用した前処理一覧
 ** 適用可能性が非常に高い前処理
   - DONE span タグの削除
 
     HTMLにおける span タグの意味より明らか。
-    ただし稀に br タグとして用いられる場合があるため、その文の意味が欠損する可能性がある。
 
-  - DONE h2 タグによる分離
+  - DONE h2 タグによる内容の分離
     
     niconico 大百科のテンプレートとして、h2 タグが大まかな意味的区切りを司っていることが観察よりわかった。
   
 ** 適用可能性が高い前処理
 
-  - DONE b タグの削除
+  - DONE em / a / strong / sub / b / nobr タグの削除
     
-  固有表現抽出のためには必要な可能性がある。
+  但し固有表現抽出のためには必要な可能性がある。
   
-- DONE strong タグの削除
-    
-  固有表現抽出のためには必要な可能性がある。
-
   - DONE br タグの削除
     
-    ただし、読点を挿入しなければならない可能性がある。
+  但し読点を挿入しなければならない可能性がある。
 
 ** 適用可能性がやや高い前処理
 - DONE ol/ul タグのリスト化
@@ -32,9 +28,50 @@
   特殊なケースではこれに当てはまらない可能性がある点に注意が必要。
   
 
-- DONE h3 タグによる分離
+- DONE h3 タグによる内容の分離
   
   h2 タグのより詳細な場合に用いられることが多いようだ。
 
-* Others 
-** TODO記事ID と 記事名の連携
+* 記事のヘッダーの一覧のためのデータベースの作り方
+
+次のSQLファイル <yourpath>/nico-dict/zips/head/create-table.sql を作成してください。
+
+#+BEGIN_SRC sqlite3
+DROP TABLE IF EXISTS article_header;
+CREATE TABLE article_header (
+       article_id INTEGER PRIMARY KEY,
+       article_title TEXT DEFAULT NULL,
+       article_title_yomi TEXT DEFAULT NULL,
+       article_category TEXT DEFAULT 'l',
+       article_date TEXT DEFAULT '20000101000000'
+)
+#+END_SRC
+
+次のコマンドでデータベースを掘ります。
+
+#+BEGIN_SRC shell
+sqlite3 ./headers.db < create-table.sql
+#+END_SRC
+
+次のファイルを作製してください。
+
+#+BEGIN_SRC shell
+#!/bin/sh
+DB="$(pwd)/headers.db"
+IMPORT_DIR="$(pwd)"
+
+IMPORT_FILES="$(pwd)/*.csv"
+
+for file_path in $IMPORT_FILES; do
+    file_name=$(basename $file_path)
+    table_name="article_header"
+    sqlite3 -separator , $DB ".import ${file_path} ${table_name}"
+done
+#+END_SRC
+
+これを /head/ 下で実行してください。
+
+
+* TODO
+  - h4 h5 タグの利用方法の説明
+
