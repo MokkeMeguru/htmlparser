@@ -72,7 +72,7 @@ done
 これを /head/ 下で実行してください。
 
 
-* TODO
+* TODO TODO
 
 h4 h5 タグの利用方法の説明
 
