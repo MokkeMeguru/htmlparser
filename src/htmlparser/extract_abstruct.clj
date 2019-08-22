@@ -44,7 +44,7 @@
                       (if-not (= "" content) [tag content] nil))
               #{:br} "。"
               #{:div} (remove-tag (rest element))
-              #{:em :a :span :strong :sub :b :nobr} (remove-tag (rest element))
+              #{:em :a :wbr :span :strong :sub :b :nobr :i} (remove-tag (rest element))
           ;; #{:h4 :h5} [:html (h/html [tag (concat-strs element)])]
               (let [content (map extract-p (rest element))]
                 (vec (cons tag content))))))))
@@ -167,6 +167,10 @@
         (split-by-content info)
         (clojure.pprint/pprint (clojure.java.io/writer output-path)))))
 
+(defn search-category [article-id db-path]
+  (let [db-spec (gen-db-spec db-path)]
+    (get article-categories (:article_category (first (sql/query db-spec ["select * from article_header where article_id = ?" article-id]))))))
+
 (defn gen-parsed-data-json [npy-path id output-path db-path]
   (let [data (nth (open-nippy npy-path) id)
         db-spec (gen-db-spec db-path)
@@ -180,13 +184,55 @@
           (split-by-content info)
           (json/write w :escape-unicode false)))))
 
+(defn gen-sample [npy-path]
+  (take 10
+        (filter #(some (fn [k]
+                         (println "now searching ...")
+                         (= (search-category
+                             (first (nth (open-nippy npy-path) %))
+                             "/home/meguru/Documents/nico-dict/zips/head/headers.db")
+                            k))
+                       ["単語" "商品"])
+                (shuffle (range (dec (count (open-nippy npy-path))))))))
+
+;; (println (gen-sample "./resources/rev201303-raw.npy"))
+
+(def sampled-ids
+  {"./resources/rev201402-raw.npy" [3048 1770 1955 5194 4489 977 2122 4105 3815 4012]
+   "./resources/rev201401-raw.npy" [14127 13722 3370 1233 6765 1976 8918 2666 5307 4311]
+   "./resources/rev201301-raw.npy" [9587 13655 15079 6264 2683 1448 12544 14944 2496 11601]
+   "./resources/rev201302-raw.npy" [15823 15116 2893 12470 3097 5310 5448 11820 12575 16450]
+   "./resources/rev201303-raw.npy" [17083 17881 342 5341 19271 16199 12088 190 8412 3262]})
+
+(defn gen-sample-jsons [order-dict db-path]
+  (map
+   (fn [[k v]]
+     (map #(do
+             (gen-parsed-data-json
+              k %
+              (format
+               "./resources/parsed-sample/sampled-%s-%d.json"
+               (-> k  (clojure.string/split #"(?=[./])") reverse second (clojure.string/replace #"[^0-9]" ""))
+               %)
+              db-path)
+             (println "done a file ...")) v))
+   order-dict))
+
+;; (doall (gen-sample-jsons sampled-ids "/home/meguru/Documents/nico-dict/zips/head/headers.db"))
+
+
+;; (count (open-nippy "./resources/rev201402-raw.npy"))
+
+;; (search-category (first (nth (open-nippy "./resources/rev201402-raw.npy") 6100))  "/home/meguru/Documents/nico-dict/zips/head/headers.db")
+
 ;; (gen-parsed-data-json "./resources/rev201402-raw.npy" 6100 "example-parsed.json" "/home/meguru/Documents/nico-dict/zips/head/headers.db")
+
 
 ;; (-> (nth (open-nippy "./resources/rev201402-raw.npy") 5000) println)
 
 ;; (gen-parsed-data "./resources/rev201402-raw.npy" 6100 "example-parsed.edn" "/home/meguru/Documents/nico-dict/zips/head/headers.db")
 
-nil;; (nth (open-nippy "./resources/rev201402-raw.npy") 6100)
+;; (nth (open-nippy "./resources/rev201402-raw.npy") 6100)
 
 ;; bug  5000
 

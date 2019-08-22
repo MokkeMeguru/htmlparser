@@ -13,7 +13,7 @@
 
 * 適用した前処理一覧
 ** 適用可能性が非常に高い前処理
-  - DONE span タグの削除
+  - DONE spanタグの削除
 
     HTMLにおける span タグの意味より明らか。
 
@@ -23,7 +23,7 @@
   
 ** 適用可能性が高い前処理
 
-  - DONE em / a / strong / sub / b / nobr タグの削除
+  - DONE em / a / strong / sub / b / nobr / wbr / i タグの削除
     
   但し固有表現抽出のためには必要な可能性がある。
   
@@ -82,3 +82,16 @@ done
 #+END_SRC
 
 これを /head/ 下で実行してください。
+
+* Optional 研究用の json ファイルをサンプルする方法
+
+  ~jqfiles.sh~ をjson ファイルのあるフォルダに配置して、これを実行 ~sh jsonfiles.sh~
+  #+caption: jqfiles.json
+  #+begin_src shell
+  #!bin/bash
+  for entry in $(pwd)/*.json
+  do
+    tmp_file=$(mktemp)
+    jq . $entry > ${tmp_file} && mv ${tmp_file} $entry
+  done
+  #+end_src
