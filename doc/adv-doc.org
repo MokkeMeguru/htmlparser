@@ -83,6 +83,12 @@ done
 
 これを /head/ 下で実行してください。
 
+* 構造化された json ファイルを得る方法
+  #+begin_src shell
+  lein run gen-parsed-data-json --npy-path ./resources/rev201402-raw.npy --id 1000 --output-path res.json  --db-path <yourpath>/headers.db
+  #+end_src
+
+  ref [[../example-parsed.json][example file]]
 * Optional 研究用の json ファイルをサンプルする方法
 
   ~jqfiles.sh~ をjson ファイルのあるフォルダに配置して、これを実行 ~sh jsonfiles.sh~
