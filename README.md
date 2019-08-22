@@ -62,9 +62,9 @@ lein run preprocess-raw-data --source "/<your dictionary>/nico-dict/zips/"
 ## Preprocessed file?
 see. [example edn file](./example.edn)
 
-実行後は上のファイルの形式に変換されたHTMLのデータが、 nippy の形式で `resources/revXXXXXX.npy` の形に保存されます。大体6GBくらいのサイズになります。
+実行後は上のファイルの形式に変換されたHTMLのデータが、 nippy の形式で `resources/revXXXXXX.npy` の形に保存されます。大体6GBくらいのサイズになります。計算機にもよりますが実行時間は30分未満です。
 
-zip されたファイルは [現在GoogleDriveへアップロードしています](https://drive.google.com/file/d/1amt99PIlBjWlzrmh-Uvr55dS6aRqXgB2/view?usp=sharing)
+zip されたファイルは [このGoogleDriveへアップロードされています](https://drive.google.com/file/d/1amt99PIlBjWlzrmh-Uvr55dS6aRqXgB2/view?usp=sharing)
 
 ## HTML の解析
 ref [advanced document](./doc/adv-doc.org)
