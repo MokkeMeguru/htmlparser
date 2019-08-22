@@ -17,39 +17,37 @@
     (let [tag (first x)
           content (rest x)]
       (if  (or (= tag :body) (= tag :div))
-        (if (and (= 1 (count content)) (= :div(-> content first first)))
+        (if (and (= 1 (count content)) (= :div (-> content first first)))
           (recur (first content))
           content)
-        (recur (first content)))
-        )))
+        (recur (first content))))))
 
 (defn extract-p
   "各要素から装飾タグなどを取り除く関数"
   [element]
   (if (string? element) element
       (let [tag (first element)
-          remove-tag (fn [content]
-                       (let [removed-content (map extract-p content)]
-                         (if (zero? (count (remove string? removed-content)))
-                           (apply str removed-content)
-                           (first removed-content)))) ;; TODO bug fix
-
-          concat-strs (fn [elem]
-                        (let [content (flatten (map extract-p (rest elem)))]
-                          (-> (apply str (remove nil? content))
-                              (clojure.string/replace #"。。" "。")
-                              (clojure.string/replace #" " ""))))]
-      (if (string? tag) element
-        (condp contains? tag
-          #{:h2 :h3 :dt :dd} [tag (concat-strs element)]
-          #{:p} (let [content (concat-strs element)]
-                  (if-not (= "" content) [tag content] nil))
-          #{:br} "。"
-          #{:div} (remove-tag (rest element))
-          #{:em :a :span :strong :sub :b :nobr} (remove-tag (rest element))
-          #{:h4 :h5} [:html (h/html [tag (concat-strs element)])]
-          (let [content (map extract-p (rest element))]
-            (vec (cons tag content))))))))
+            remove-tag (fn [content]
+                         (let [removed-content (map extract-p content)]
+                           (if (zero? (count (remove string? removed-content)))
+                             (apply str removed-content)
+                             (first removed-content)))) ;; TODO bug fix
+            concat-strs (fn [elem]
+                          (let [content (flatten (map extract-p (rest elem)))]
+                            (-> (apply str (remove nil? content))
+                                (clojure.string/replace #"。。" "。")
+                                (clojure.string/replace #" " ""))))]
+        (if (string? tag) element
+            (condp contains? tag
+              #{:h2 :h3 :dt :dd} [tag (concat-strs element)]
+              #{:p} (let [content (concat-strs element)]
+                      (if-not (= "" content) [tag content] nil))
+              #{:br} "。"
+              #{:div} (remove-tag (rest element))
+              #{:em :a :span :strong :sub :b :nobr} (remove-tag (rest element))
+          ;; #{:h4 :h5} [:html (h/html [tag (concat-strs element)])]
+              (let [content (map extract-p (rest element))]
+                (vec (cons tag content))))))))
 
 (defn format-content-element
   "table や ul 要素を処理するための関数"
@@ -75,6 +73,29 @@
    format-content-element
    content))
 
+(def  ^:private tag-list
+  {:h1 1
+   :h2 2
+   :h3 3
+   :h4 4
+   :h5 5
+   ;; :h6 6
+   ;; :h7 7
+   ;; :h8 8
+   })
+
+(def ^:private invert-tag-list
+  (clojure.set/map-invert tag-list))
+
+(defn ^:private small-tag?
+  [element tag]
+  (if (contains? tag-list (first element))
+    (< (tag tag-list) ((first element) tag-list))
+    false))
+
+(defn ^:private have-more-child?
+  [rbody tag]
+  (not-empty (filter #(small-tag? % tag) rbody)))
 
 (defn gen-content
   "h2 以下の内容を処理するための関数
@@ -83,26 +104,24 @@
    <p>hoge</p>
   なら <p>hoge</p> の部分 を処理する"
   [body tag]
-  (let [
-        body (vec (remove nil? body))
+  (let [body (vec (remove nil? body))
         content (format-content (vec (take-while #(not= tag (first %)) body)))
         reminder (drop-while #(not= tag (first %)) body)
-        gen-child (fn [rbody]
+        gen-child (fn [rbody tag]
                     (loop [tmp (vec rbody)
                            acc []]
                       (if-not (zero? (count tmp))
                         (recur (vec (drop-while #(not= tag (first %)) (drop 1 (vec tmp))))
                                (cons
-                                {:name (-> (take 1 tmp) first second)
-                                 :meta (-> (take 1 tmp) first first)
-                                 :content (format-content (vec (take-while #(not= tag (first %)) (drop 1 (vec tmp)))))}
-                                acc)
-                               )
+                                (merge
+                                 (gen-content (format-content (vec (take-while #(not= tag (first %)) (drop 1 (vec tmp)))))
+                                              (get invert-tag-list (inc (tag tag-list))))
+                                 {:name (-> (take 1 tmp) first second)
+                                  :meta (-> (take 1 tmp) first first)})
+                                acc))
                         (vec acc))))]
     {:content content
-     :children (gen-child reminder)
-     }))
-
+     :children (gen-child reminder tag)}))
 
 (defn split-by-content
   ""
@@ -130,6 +149,8 @@
                  :meta (first tag)}
                 (gen-content body :h3))))))))
 
+(split-by-content example {})
+
 (defn gen-db-spec [db-path]
   {:subprotocol "sqlite"
    :subname db-path})
@@ -137,22 +158,19 @@
 (def article-categories {"a" "単語" "v" "動画" "i" "商品" "l" "生放送"})
 
 (defn gen-parsed-data [npy-path id output-path db-path]
-  (let [
-        data (nth (open-nippy npy-path) id)
+  (let [data (nth (open-nippy npy-path) id)
         db-spec (gen-db-spec db-path)
         info (->
               (merge
-                {:updated-date (-> data (nth 2))}
-                (first (sql/query db-spec ["select * from article_header where article_id = ?" (-> data first)])))
+               {:updated-date (-> data (nth 2))}
+               (first (sql/query db-spec ["select * from article_header where article_id = ?" (-> data first)])))
               (update :article_category #(get article-categories % "undefined")))]
     (-> data  extract-p extract-body
         (split-by-content info)
         (clojure.pprint/pprint (clojure.java.io/writer output-path)))))
 
-
 (defn gen-parsed-data-json [npy-path id output-path db-path]
-  (let [
-        data (nth (open-nippy npy-path) id)
+  (let [data (nth (open-nippy npy-path) id)
         db-spec (gen-db-spec db-path)
         info (->
               (merge
@@ -161,20 +179,18 @@
               (update :article_category #(get article-categories % "undefined")))]
     (with-open [w (clojure.java.io/writer output-path)]
       (-> data  extract-p extract-body
-           (split-by-content info)
-           (json/write w :escape-unicode false)
-           ))))
+          (split-by-content info)
+          (json/write w :escape-unicode false)))))
 
+(gen-parsed-data-json "./resources/rev201402-raw.npy" 6100 "example-parsed.json" "/home/meguru/Documents/nico-dict/zips/head/headers.db")
 
-
-;; (gen-parsed-data-json "./resources/rev201402-raw.npy" 6100 "example-parsed.json" "/home/meguru/Documents/nico-dict/zips/head/headers.db")
-
+;; (-> (nth (open-nippy "./resources/rev201402-raw.npy") 5000) println)
 
 ;; (gen-parsed-data "./resources/rev201402-raw.npy" 6100 "example-parsed.edn" "/home/meguru/Documents/nico-dict/zips/head/headers.db")
 
-;; (nth (open-nippy "./resources/rev201402-raw.npy") 6100)
+nil;; (nth (open-nippy "./resources/rev201402-raw.npy") 6100)
 
-;; bug  3600, 6100
+;; bug  5000
 
 ;; (def example-nest-content [[:h2 "title"] [:ul [:li "hoge"]] [:h4 "bar"] [:ul [:li "bar"]]])
 

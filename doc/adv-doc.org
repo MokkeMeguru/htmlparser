@@ -1,5 +1,16 @@
-* HTMLのデータを更に解析をする
-  
+#+options: ':nil *:t -:t ::t <:t H:3 \n:nil ^:t arch:headline author:t
+#+options: broken-links:nil c:nil creator:nil d:(not "LOGBOOK") date:t e:t
+#+options: email:nil f:t inline:t num:t p:nil pri:nil prop:nil stat:t tags:t
+#+options: tasks:t tex:t timestamp:t title:t toc:t todo:t |:t
+#+title: HTMLのデータを更に解析する
+#+date: <2019-08-22 木>
+#+author: meguru
+#+email: meguru.mokke@gmail.com
+#+language: en
+#+select_tags: export
+#+exclude_tags: noexport
+#+creator: Emacs 26.1 (Org mode 9.2.4)
+
 * 適用した前処理一覧
 ** 適用可能性が非常に高い前処理
   - DONE span タグの削除
@@ -28,9 +39,10 @@
   特殊なケースではこれに当てはまらない可能性がある点に注意が必要。
   
 
-- DONE h3 タグによる内容の分離
+- DONE h3, h4, h5 タグによる内容の分離
   
   h2 タグのより詳細な場合に用いられることが多いようだ。
+
 
 * 記事のヘッダーの一覧のためのデータベースの作り方
 
@@ -70,8 +82,3 @@ done
 #+END_SRC
 
 これを /head/ 下で実行してください。
-
-
-* TODO
-  - h4 h5 タグの利用方法の説明
-
