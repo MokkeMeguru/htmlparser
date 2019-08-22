@@ -23,7 +23,7 @@
   
 ** 適用可能性が高い前処理
 
-  - DONE em / a / strong / sub / b / nobr / wbr / i タグの削除
+  - DONE em / a / strong / sub / b / nobr / wbr / i / hr タグの削除
     
   但し固有表現抽出のためには必要な可能性がある。
   

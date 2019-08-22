@@ -44,7 +44,7 @@
                       (if-not (= "" content) [tag content] nil))
               #{:br} "。"
               #{:div} (remove-tag (rest element))
-              #{:em :a :wbr :span :strong :sub :b :nobr :i} (remove-tag (rest element))
+              #{:em :a :wbr :span :strong :sub :b :nobr :i :hr} (remove-tag (rest element))
           ;; #{:h4 :h5} [:html (h/html [tag (concat-strs element)])]
               (let [content (map extract-p (rest element))]
                 (vec (cons tag content))))))))
