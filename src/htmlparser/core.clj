@@ -3,7 +3,8 @@
             [hiccup-bridge.core :as hicv]
             [clojure.data.csv :as csv]
             [taoensso.nippy :as nippy]
-            [clojure.tools.cli :refer [parse-opts]])
+            [clojure.tools.cli :refer [parse-opts]]
+            [htmlparser.extract-abstruct :refer [gen-parsed-data-json gen-parsed-data]])
   (:gen-class))
 
 
@@ -43,12 +44,6 @@
        {:root (format "rev20%02d" x) :child (format "rev20%02d%02d" x y)}
        ))))
 
-(def cli-options
-  [["-s" "--source SOURCE" "Source  Directory"
-    :default "/home/meguru/Documents/nico-dict/zips/"
-    :parse-fn str]
-   ["-h" "--help"]])
-
 (defn preprocess-raw-data [zips-folder]
   (doall
    (map
@@ -69,6 +64,26 @@
           {:root "rev2014" :child "rev201401"}
           {:root "rev2014" :child "rev201402"})))
 
+;; for cli
+
+(def cli-options
+  [["-s" "--source SOURCE" "Source  Directory"
+    :default "/home/meguru/Documents/nico-dict/zips/"
+    :parse-fn str]
+   ["-n" "--npy-path NPY-PATH" "NPY PATH"
+    :default "./resources/rev201402-raw.npy"
+    :parse-fn str]
+   ["-i" "--id ID" "Article ID"
+    :default "6100"
+    :parse-fn str]
+   ["-o" "--output-path OUTPUT-PATH" "Output PATH"
+    :default "example-parsed.json"
+    :parse-fn str]
+   ["-d" "--db-path DB-PATH" "Database  PATH"
+    :default "/home/meguru/Documents/nico-dict/zips/head/headers.db"
+    :parse-fn str]
+   ["-h" "--help"]])
+
 (defn help []
   (println "this is help, please see README.md"))
 
@@ -76,8 +91,14 @@
   ([& args]
    (let [argdic (parse-opts args cli-options)
          zips-folder (-> argdic :options :source)
-         arguments (-> argdic :arguments first)]
+         arguments (-> argdic :arguments first)
+         id (-> argdic :options :id)
+         npy-path (-> argdic :options :npy-path)
+         output-path (-> argdic :options :output-path)
+         db-path (-> argdic :options :db-path)]
      (case arguments
        "preprocess-raw-data" (preprocess-raw-data zips-folder)
+       "gen-parsed-data" (gen-parsed-data-json npy-path id output-path db-path)
+       "gen-parsed-data-json" (gen-parsed-data-json npy-path id output-path db-path)
        "show-help" (help)
        (println "example. lein run show-help")))))

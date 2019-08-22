@@ -55,7 +55,7 @@ TODO: 実行のためのシェルファイル作成
 3. 次のコマンドを実行してください。
 
 ```shell
-lein run preprocess-data --source "/<your dictionary>/nico-dict/zips/"
+lein run preprocess-raw-data --source "/<your dictionary>/nico-dict/zips/"
 ```
 
 

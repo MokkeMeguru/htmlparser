@@ -149,8 +149,6 @@
                  :meta (first tag)}
                 (gen-content body :h3))))))))
 
-(split-by-content example {})
-
 (defn gen-db-spec [db-path]
   {:subprotocol "sqlite"
    :subname db-path})
@@ -182,7 +180,7 @@
           (split-by-content info)
           (json/write w :escape-unicode false)))))
 
-(gen-parsed-data-json "./resources/rev201402-raw.npy" 6100 "example-parsed.json" "/home/meguru/Documents/nico-dict/zips/head/headers.db")
+;; (gen-parsed-data-json "./resources/rev201402-raw.npy" 6100 "example-parsed.json" "/home/meguru/Documents/nico-dict/zips/head/headers.db")
 
 ;; (-> (nth (open-nippy "./resources/rev201402-raw.npy") 5000) println)
 
