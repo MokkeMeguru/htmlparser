@@ -103,3 +103,7 @@ done
   #+end_src
 
   [[https://drive.google.com/open?id=1Mch7CrRsAczZLYNPAmj4zWoy8GADVY54][here is a backup files]]
+* TODO 
+ - <!-- --> の削除
+ - list のバグ修正
+ - hiccup -> enlive html-resource への移行
